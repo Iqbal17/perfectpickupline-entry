@@ -51,6 +51,13 @@ nervous asking you out." (110 chars). Revised: "this conversation"
 became "meeting you" — warmer and more direct, a pickup line is about
 the person, not the chat — and the comma after "one" was dropped for a
 smoother single breath. Same meaning, harder landing; 110 -> 103 chars.
+
+Pass 3 — validation guard strengthened: the guard already rejects a
+blank line, non-UTF-8 text, and anything over the 200-character cap,
+but nothing stopped LINE from containing a newline, which would split
+entry.txt into two lines and break the single-line gate. The guard now
+also rejects any "\\n" or "\\r" in LINE, so the program can never emit
+an invalid entry even if LINE is edited later.
 """
 
 import os
@@ -70,6 +77,8 @@ def main():
             "entry line is %d characters, over the 200-character cap"
             % len(LINE)
         )
+    if "\n" in LINE or "\r" in LINE:
+        raise ValueError("entry line must be a single line (no newline characters)")
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
